@@ -12,11 +12,17 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: process.env.PORT || 5173
+    port: process.env.PORT || 5173,
+    strictPort: true
   },
   preview: {
     host: '0.0.0.0',
     port: process.env.PORT || 5173,
-    allowedHosts: ['all'] // Permet tous les hosts
+    strictPort: true,
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      'ema-v3-front.onrender.com'
+    ]
   }
 });
