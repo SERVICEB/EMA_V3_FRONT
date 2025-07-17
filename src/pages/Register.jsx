@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'https://emaprojetbackend.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ema-v3-backend.onrender.com/';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MdEmail, MdLock } from 'react-icons/md';

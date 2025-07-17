@@ -62,7 +62,7 @@ const ResidenceForm = () => {
     // Si l'URL commence déjà par http, on la retourne telle quelle
     if (mediaUrl.startsWith('http')) {
       // ✅ CORRECTION: Remplacer l'ancienne URL par la nouvelle
-      return mediaUrl.replace('https://emaprojetbackend.onrender.com', API_URL);
+      return mediaUrl.replace('https://ema-v3-backend.onrender.com/', API_URL);
     }
     
     // Sinon, on construit l'URL complète

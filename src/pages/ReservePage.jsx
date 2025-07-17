@@ -6,7 +6,7 @@ import { fetchResidences } from '../api/api';
 import './ReservationPage.css';
 
 // Configuration unique de l'API URL
-const API_URL = import.meta.env.VITE_API_URL || 'https://emaprojetbackend.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ema-v3-backend.onrender.com/';
 const isProduction = window.location.hostname !== 'localhost';
 
 // Fonction pour obtenir l'URL complète d'un média
