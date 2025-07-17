@@ -1,10 +1,12 @@
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://emaprojetbackend.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ema-v3-backend.onrender.com';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { MdEmail, MdLock } from 'react-icons/md';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/auth.css';
+
+// Configuration axios globale pour CORS
+axios.defaults.withCredentials = false;
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -25,7 +27,10 @@ export default function Login() {
       const res = await axios.post(`${API_URL}/api/auth/login`, formData, {
         headers: {
           'Content-Type': 'application/json',
-        }
+          'Accept': 'application/json'
+        },
+        withCredentials: false, // Important pour éviter les problèmes CORS
+        timeout: 10000 // Timeout de 10 secondes
       });
 
       // ✅ Modification : récupérer firstName et lastName au lieu de name
@@ -61,7 +66,10 @@ export default function Login() {
     } catch (error) {
       console.error('Erreur de connexion:', error);
       
-      if (error.response) {
+      // Gestion spécifique des erreurs CORS
+      if (error.code === 'ERR_NETWORK' || error.message.includes('CORS')) {
+        setMessage("❌ Problème de connexion au serveur. Veuillez réessayer.");
+      } else if (error.response) {
         // Le serveur a répondu avec un code d'erreur
         const status = error.response.status;
         const data = error.response.data;
