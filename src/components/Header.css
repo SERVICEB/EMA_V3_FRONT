@@ -1,0 +1,93 @@
+/* Header.css */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  background-color: rgba(0, 0, 0, 0.87);
+  color: white;
+}
+
+.header * {
+  color: white !important;
+}
+
+.nav {
+  color: white;
+}
+
+.nav a,
+.nav button {
+  color: white !important;
+  text-decoration: none;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 0.5rem;
+  margin-left: 1cm;
+}
+
+.home-icon-link {
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.home-icon {
+  width: 24px;
+  height: 24px;
+  color: white;
+  transition: color 0.3s;
+}
+
+.home-icon:hover {
+  color: var(--primary);
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+  gap: 0;
+}
+
+.logo-main {
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  color: white;
+}
+
+.logo-sub {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: white;
+}
+
+.nav-link {
+  margin-left: 1.5rem;
+  margin-right: 1cm;
+  font-weight: 600;
+  color: white;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.nav-link:hover {
+  color: var(--primary);
+}
+
+.logout-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  margin-right: 1cm;
+  color: white;
+}

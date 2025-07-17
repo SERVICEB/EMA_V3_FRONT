@@ -1,0 +1,77 @@
+/* Import de base Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === Typographie globale === */
+body {
+  @apply font-sans text-gray-800 bg-gray-50;
+}
+
+/* === Titres === */
+h1, h2, h3, h4 {
+  @apply font-bold text-gray-900;
+}
+
+/* === Boutons principaux === */
+.btn-primary {
+  @apply bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition duration-200;
+}
+
+.btn-outline {
+  @apply border border-orange-500 text-orange-500 px-4 py-2 rounded-md hover:bg-orange-100 transition duration-200;
+}
+
+/* === Champs de formulaire === */
+.input-field {
+  @apply w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500;
+}
+
+/* === Cartes (résidences) === */
+.card {
+  @apply bg-white rounded-xl shadow-md overflow-hidden;
+}
+
+.card img {
+  @apply w-full h-48 object-cover;
+}
+
+.card-body {
+  @apply p-4;
+}
+
+.card-title {
+  @apply text-lg font-semibold mb-1;
+}
+
+.card-text {
+  @apply text-sm text-gray-500;
+}
+
+/* === Barre de recherche === */
+.search-bar {
+  @apply bg-white shadow-md rounded-lg p-4 flex flex-col md:flex-row gap-4;
+}
+
+/* === Carte interactive === */
+.map-view {
+  @apply bg-yellow-100 rounded-md h-64 flex items-center justify-center text-gray-700 font-semibold;
+}
+
+/* === Actions (réserver/publier) === */
+.action-buttons {
+  @apply mt-6 flex flex-col gap-4;
+}
+
+/* === Header === */
+.header {
+  @apply bg-white shadow-md py-4 px-6 flex justify-between items-center;
+}
+
+.logo {
+  @apply text-xl font-bold text-gray-900;
+}
+
+.logo span {
+  @apply text-orange-500;
+}
