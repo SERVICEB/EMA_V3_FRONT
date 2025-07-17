@@ -5,39 +5,36 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import './ResidenceForm.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://emaprojetbackend.onrender.com';
-axios.defaults.baseURL = API_URL;
+// ✅ CORRECTION: Utilisation de la nouvelle URL du backend
+const API_URL = import.meta.env.VITE_API_URL || 'https://ema-v3-backend.onrender.com';
+axios.defaults.baseURL = `${API_URL}/api`; // ✅ Ajout de /api dans baseURL
 
 const ResidenceForm = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // Pour l'édition
+  const { id } = useParams();
   const token = localStorage.getItem('token');
   const userId = token ? jwtDecode(token).id : null;
   const isEditing = Boolean(id);
 
-  // État du formulaire
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     location: '',
     address: '',
-    reference: '', // ✅ Ajouté
+    reference: '',
     type: 'Appartement',
     category: '',
     prixParNuit: '',
   });
 
-  // État pour les médias
   const [mediaFiles, setMediaFiles] = useState([]);
   const [existingMedia, setExistingMedia] = useState([]);
   const [mediaToDelete, setMediaToDelete] = useState([]);
 
-  // États de l'interface
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState({});
 
-  // Types de résidence disponibles
   const residenceTypes = [
     'Appartement',
     'Maison',
@@ -49,7 +46,6 @@ const ResidenceForm = () => {
     'Autre'
   ];
 
-  // Catégories disponibles
   const categories = [
     'Standard',
     'Premium',
@@ -59,14 +55,26 @@ const ResidenceForm = () => {
     'Business'
   ];
 
-  // Charger les données en mode édition
+  // ✅ FONCTION UTILITAIRE: Construction correcte des URLs d'images
+  const getMediaUrl = (mediaUrl) => {
+    if (!mediaUrl) return '/placeholder-image.jpg';
+    
+    // Si l'URL commence déjà par http, on la retourne telle quelle
+    if (mediaUrl.startsWith('http')) {
+      // ✅ CORRECTION: Remplacer l'ancienne URL par la nouvelle
+      return mediaUrl.replace('https://emaprojetbackend.onrender.com', API_URL);
+    }
+    
+    // Sinon, on construit l'URL complète
+    return `${API_URL}${mediaUrl.startsWith('/') ? mediaUrl : '/' + mediaUrl}`;
+  };
+
   useEffect(() => {
     if (isEditing) {
       loadResidenceData();
     }
   }, [id, isEditing]);
 
-  // Redirection si non connecté
   useEffect(() => {
     if (!userId) {
       navigate('/connexion');
@@ -76,7 +84,8 @@ const ResidenceForm = () => {
   const loadResidenceData = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`/api/residences/${id}`, {
+      // ✅ CORRECTION: Utilisation de l'URL relative car baseURL est configuré
+      const { data } = await axios.get(`/residences/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -85,10 +94,10 @@ const ResidenceForm = () => {
         description: data.description || '',
         location: data.location || '',
         address: data.address || '',
-        reference: data.reference || '', // ✅ Ajouté
+        reference: data.reference || '',
         type: data.type || 'Appartement',
         category: data.category || '',
-        prixParNuit: data.price || '', // ✅ Correction: data.price au lieu de data.prixParNuit
+        prixParNuit: data.price || '',
       });
       
       setExistingMedia(data.media || []);
@@ -107,7 +116,6 @@ const ResidenceForm = () => {
       [name]: value
     }));
     
-    // Supprimer l'erreur du champ modifié
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -121,7 +129,7 @@ const ResidenceForm = () => {
     const validFiles = files.filter(file => {
       const isImage = file.type.startsWith('image/');
       const isVideo = file.type.startsWith('video/');
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB max
+      const isValidSize = file.size <= 10 * 1024 * 1024;
       
       return (isImage || isVideo) && isValidSize;
     });
@@ -164,7 +172,6 @@ const ResidenceForm = () => {
       newErrors.prixParNuit = 'Le prix par nuit doit être supérieur à 0';
     }
 
-    // Vérifier les médias seulement en mode création
     if (!isEditing && mediaFiles.length === 0) {
       newErrors.media = 'Au moins une image ou vidéo est requise';
     }
@@ -173,7 +180,6 @@ const ResidenceForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ BLOC DE CODE CORRIGÉ - handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -184,53 +190,44 @@ const ResidenceForm = () => {
 
     try {
       setLoading(true);
-      setMessage(''); // Clear previous messages
+      setMessage('');
       
       const formDataToSend = new FormData();
 
-      // ✅ CORRECTION: Utilisation de Object.entries et mapping correct des champs
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== '') {
-          // Conversion en string pour éviter les erreurs de type
           const stringValue = typeof value === 'string' ? value : String(value);
           
           if (key === 'prixParNuit') {
-            formDataToSend.append('price', stringValue); // ✅ Correction: prixParNuit -> price
+            formDataToSend.append('price', stringValue);
           } else if (key === 'reference') {
-            // Skip reference ici, on le gère séparément ci-dessous
             return;
-          } else if (key !== 'category') { // ✅ Exclure category si pas géré côté backend
+          } else if (key !== 'category') {
             formDataToSend.append(key, stringValue);
           }
         }
       });
 
-      // ✅ AJOUT: Gestion spécifique pour reference (seulement si non vide)
       if (formData.reference && typeof formData.reference === 'string' && formData.reference.trim() !== '') {
         formDataToSend.append('reference', formData.reference.trim());
       }
 
-      // ✅ AJOUT: Ajout du champ amenities temporaire
-      formDataToSend.append('amenities', JSON.stringify([])); // temporaire
+      formDataToSend.append('amenities', JSON.stringify([]));
 
-      // Ajouter l'ID utilisateur
       if (userId) {
         formDataToSend.append('userId', userId);
       }
 
-      // Ajouter les nouveaux fichiers média
       if (mediaFiles && mediaFiles.length > 0) {
         mediaFiles.forEach((file) => {
           formDataToSend.append('media', file);
         });
       }
 
-      // Ajouter les médias à supprimer en mode édition
       if (isEditing && mediaToDelete.length > 0) {
         formDataToSend.append('mediaToDelete', JSON.stringify(mediaToDelete));
       }
 
-      // Debug: Afficher le contenu du FormData de manière plus détaillée
       console.log('=== DEBUGGING FORMDATA ===');
       console.log('FormData entries:');
       for (let [key, value] of formDataToSend.entries()) {
@@ -245,24 +242,22 @@ const ResidenceForm = () => {
       const config = {
         headers: {
           Authorization: `Bearer ${token}`
-          // Ne pas définir Content-Type, axios le fera automatiquement pour FormData
         }
       };
 
       let response;
       if (isEditing) {
-        response = await axios.put(`/api/residences/${id}`, formDataToSend, config);
+        // ✅ CORRECTION: URL relative
+        response = await axios.put(`/residences/${id}`, formDataToSend, config);
       } else {
-        response = await axios.post('/api/residences', formDataToSend, config);
+        // ✅ CORRECTION: URL relative
+        response = await axios.post('/residences', formDataToSend, config);
       }
 
       setMessage(`✅ Résidence ${isEditing ? 'modifiée' : 'créée'} avec succès !`);
       
-      // Forcer un rechargement complet de la page après un court délai
       console.log('Redirection vers la page d\'accueil...');
       
-      // Utiliser window.location.href pour forcer un rechargement complet
-      // avec un léger délai pour permettre l'affichage du message de succès
       setTimeout(() => {
         console.log('Redirection en cours...');
         window.location.href = '/';
@@ -301,7 +296,7 @@ const ResidenceForm = () => {
       description: '',
       location: '',
       address: '',
-      reference: '', // ✅ Ajouté
+      reference: '',
       type: 'Appartement',
       category: '',
       prixParNuit: '',
@@ -330,7 +325,6 @@ const ResidenceForm = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="residence-form">
-        {/* Informations de base */}
         <div className="form-section">
           <h2 className="section-title">📋 Informations générales</h2>
           
@@ -372,7 +366,6 @@ const ResidenceForm = () => {
           </div>
         </div>
 
-        {/* Localisation */}
         <div className="form-section">
           <h2 className="section-title">📍 Localisation</h2>
           
@@ -409,7 +402,6 @@ const ResidenceForm = () => {
             </div>
           </div>
 
-          {/* ✅ AJOUT: Champ reference */}
           <div className="form-group">
             <label htmlFor="reference" className="form-label">
               Référence (optionnel)
@@ -427,7 +419,6 @@ const ResidenceForm = () => {
           </div>
         </div>
 
-        {/* Type et catégorie */}
         <div className="form-section">
           <h2 className="section-title">🏠 Type et catégorie</h2>
           
@@ -469,7 +460,6 @@ const ResidenceForm = () => {
           </div>
         </div>
 
-        {/* Prix */}
         <div className="form-section">
           <h2 className="section-title">💰 Tarification</h2>
           
@@ -492,11 +482,9 @@ const ResidenceForm = () => {
           </div>
         </div>
 
-        {/* Médias */}
         <div className="form-section">
           <h2 className="section-title">📸 Photos et vidéos</h2>
           
-          {/* Médias existants (en mode édition) */}
           {isEditing && existingMedia.length > 0 && (
             <div className="existing-media">
               <h3 className="subsection-title">Médias actuels</h3>
@@ -505,7 +493,7 @@ const ResidenceForm = () => {
                   <div key={media.id || `existing-${index}`} className="media-item">
                     {media.type === 'image' ? (
                       <img
-                        src={`${API_URL}${media.url}`}
+                        src={getMediaUrl(media.url)} // ✅ CORRECTION: Utilisation de la fonction getMediaUrl
                         alt={`Media ${index + 1}`}
                         className="media-preview"
                         onError={(e) => {
@@ -515,7 +503,7 @@ const ResidenceForm = () => {
                       />
                     ) : (
                       <video
-                        src={`${API_URL}${media.url}`}
+                        src={getMediaUrl(media.url)} // ✅ CORRECTION: Utilisation de la fonction getMediaUrl
                         className="media-preview"
                         controls
                         onError={(e) => {
@@ -537,7 +525,6 @@ const ResidenceForm = () => {
             </div>
           )}
 
-          {/* Nouveaux médias */}
           <div className="form-group">
             <label htmlFor="media" className="form-label">
               {isEditing ? 'Ajouter de nouveaux médias' : 'Photos/Vidéos *'}
@@ -556,7 +543,6 @@ const ResidenceForm = () => {
             {errors.media && <span className="error-message">{errors.media}</span>}
           </div>
 
-          {/* Aperçu des nouveaux médias */}
           {mediaFiles.length > 0 && (
             <div className="new-media">
               <h3 className="subsection-title">Nouveaux médias à ajouter</h3>
@@ -600,14 +586,12 @@ const ResidenceForm = () => {
           )}
         </div>
 
-        {/* Message de statut */}
         {message && (
           <div className={`form-message ${message.includes('❌') ? 'error' : 'success'}`}>
             {message}
           </div>
         )}
 
-        {/* Boutons d'action */}
         <div className="form-actions">
           <button
             type="button"
