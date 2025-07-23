@@ -9,7 +9,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import './ResidenceDetails.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://emaprojetbackend.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ema-v3-backend.onrender.com';
 axios.defaults.baseURL = API_URL;
 
 const ResidenceDetails = () => {
