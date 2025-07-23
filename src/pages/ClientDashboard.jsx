@@ -5,6 +5,23 @@ import { Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import './ClientDashboard.css';
 
+// 🔧 Configuration de l'instance API avec axios
+const api = axios.create({
+  baseURL: API_URL + '/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// 🔧 Intercepteur pour ajouter automatiquement le token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export default function ClientDashboard() {
   const [residences, setResidences] = useState([]);
   const [reservations, setReservations] = useState([]);
@@ -26,6 +43,7 @@ export default function ClientDashboard() {
 
     try {
       setReservationsLoading(true);
+      // ✅ Maintenant 'api' est définie
       const { data } = await api.get('/reservations/client');
       setReservations(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -38,7 +56,8 @@ export default function ClientDashboard() {
 
   const fetchResidences = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/residences`);
+      // ✅ Utilisation cohérente de l'instance api
+      const res = await api.get('/residences');
       const data = res.data.data || res.data;
       setResidences(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -61,11 +80,10 @@ export default function ClientDashboard() {
     if (!confirm) return;
 
     try {
-      await axios.patch(
-        `${API_URL}/api/reservations/${reservationId}/status`,
-        { status: 'annulée' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // ✅ Utilisation de l'instance api avec token automatique
+      await api.patch(`/reservations/${reservationId}/status`, { 
+        status: 'annulée' 
+      });
       setReservations(prev =>
         prev.map(r => r._id === reservationId ? { ...r, status: 'annulée' } : r)
       );
@@ -81,9 +99,8 @@ export default function ClientDashboard() {
     if (!confirm) return;
 
     try {
-      await axios.delete(`${API_URL}/api/reservations/${reservationId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ✅ Utilisation de l'instance api avec token automatique
+      await api.delete(`/reservations/${reservationId}`);
       setReservations(prev => prev.filter(r => r._id !== reservationId));
       alert('Supprimée avec succès');
     } catch (error) {
