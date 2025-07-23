@@ -1,13 +1,15 @@
-// ResidenceForm.jsx
+// ResidenceForm.jsx - VERSION CORRIGÉE
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import './ResidenceForm.css';
 
-// ✅ CORRECTION: Utilisation de la nouvelle URL du backend
-const API_URL = import.meta.env.VITE_API_URL || 'https://ema-v3-backend.onrender.com';
-axios.defaults.baseURL = `${API_URL}/api`; // ✅ Ajout de /api dans baseURL
+// ✅ CORRECTION: Import des fonctions API centralisées
+import { 
+  getResidenceById, 
+  createResidence, 
+  updateResidence 
+} from '../api/api.js'; // Ajustez le chemin selon votre structure
 
 const ResidenceForm = () => {
   const navigate = useNavigate();
@@ -55,18 +57,15 @@ const ResidenceForm = () => {
     'Business'
   ];
 
-  // ✅ FONCTION UTILITAIRE: Construction correcte des URLs d'images
+  // ✅ CORRECTION: URL simplifiée pour les médias
   const getMediaUrl = (mediaUrl) => {
     if (!mediaUrl) return '/placeholder-image.jpg';
     
-    // Si l'URL commence déjà par http, on la retourne telle quelle
     if (mediaUrl.startsWith('http')) {
-      // ✅ CORRECTION: Remplacer l'ancienne URL par la nouvelle
-      return mediaUrl.replace('https://ema-v3-backend.onrender.com/', API_URL);
+      return mediaUrl;
     }
     
-    // Sinon, on construit l'URL complète
-    return `${API_URL}${mediaUrl.startsWith('/') ? mediaUrl : '/' + mediaUrl}`;
+    return `https://ema-v3-backend.onrender.com${mediaUrl.startsWith('/') ? mediaUrl : '/' + mediaUrl}`;
   };
 
   useEffect(() => {
@@ -81,13 +80,11 @@ const ResidenceForm = () => {
     }
   }, [userId, navigate]);
 
+  // ✅ CORRECTION: Utilisation des fonctions API centralisées
   const loadResidenceData = async () => {
     try {
       setLoading(true);
-      // ✅ CORRECTION: Utilisation de l'URL relative car baseURL est configuré
-      const { data } = await axios.get(`/residences/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const data = await getResidenceById(id);
       
       setFormData({
         title: data.title || '',
@@ -180,6 +177,7 @@ const ResidenceForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ CORRECTION: Utilisation des fonctions API centralisées
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -194,6 +192,7 @@ const ResidenceForm = () => {
       
       const formDataToSend = new FormData();
 
+      // Ajout des données du formulaire
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== '') {
           const stringValue = typeof value === 'string' ? value : String(value);
@@ -218,6 +217,7 @@ const ResidenceForm = () => {
         formDataToSend.append('userId', userId);
       }
 
+      // Ajout des fichiers média
       if (mediaFiles && mediaFiles.length > 0) {
         mediaFiles.forEach((file) => {
           formDataToSend.append('media', file);
@@ -229,7 +229,6 @@ const ResidenceForm = () => {
       }
 
       console.log('=== DEBUGGING FORMDATA ===');
-      console.log('FormData entries:');
       for (let [key, value] of formDataToSend.entries()) {
         if (value instanceof File) {
           console.log(`${key}: [FILE] ${value.name} (${value.size} bytes, ${value.type})`);
@@ -239,34 +238,21 @@ const ResidenceForm = () => {
       }
       console.log('=== END DEBUGGING ===');
 
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      };
-
       let response;
       if (isEditing) {
-        // ✅ CORRECTION: URL relative
-        response = await axios.put(`/residences/${id}`, formDataToSend, config);
+        response = await updateResidence(id, formDataToSend);
       } else {
-        // ✅ CORRECTION: URL relative
-        response = await axios.post('/residences', formDataToSend, config);
+        response = await createResidence(formDataToSend);
       }
 
       setMessage(`✅ Résidence ${isEditing ? 'modifiée' : 'créée'} avec succès !`);
       
-      console.log('Redirection vers la page d\'accueil...');
-      
       setTimeout(() => {
-        console.log('Redirection en cours...');
-        window.location.href = '/';
+        navigate('/');
       }, 1000);
 
     } catch (error) {
       console.error('Erreur lors de la soumission:', error);
-      console.error('Response status:', error.response?.status);
-      console.error('Full error object:', error);
       
       let errorMessage = 'Erreur lors de la soumission';
       
@@ -277,8 +263,6 @@ const ResidenceForm = () => {
           errorMessage = error.response.data.message;
         } else if (error.response.data.error) {
           errorMessage = error.response.data.error;
-        } else {
-          errorMessage = `Erreur serveur: ${JSON.stringify(error.response.data)}`;
         }
       } else if (error.message) {
         errorMessage = error.message;
@@ -325,6 +309,7 @@ const ResidenceForm = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="residence-form">
+        {/* Informations générales */}
         <div className="form-section">
           <h2 className="section-title">📋 Informations générales</h2>
           
@@ -366,6 +351,7 @@ const ResidenceForm = () => {
           </div>
         </div>
 
+        {/* Localisation */}
         <div className="form-section">
           <h2 className="section-title">📍 Localisation</h2>
           
@@ -419,6 +405,7 @@ const ResidenceForm = () => {
           </div>
         </div>
 
+        {/* Type et catégorie */}
         <div className="form-section">
           <h2 className="section-title">🏠 Type et catégorie</h2>
           
@@ -460,6 +447,7 @@ const ResidenceForm = () => {
           </div>
         </div>
 
+        {/* Tarification */}
         <div className="form-section">
           <h2 className="section-title">💰 Tarification</h2>
           
@@ -482,6 +470,7 @@ const ResidenceForm = () => {
           </div>
         </div>
 
+        {/* Photos et vidéos */}
         <div className="form-section">
           <h2 className="section-title">📸 Photos et vidéos</h2>
           
@@ -493,7 +482,7 @@ const ResidenceForm = () => {
                   <div key={media.id || `existing-${index}`} className="media-item">
                     {media.type === 'image' ? (
                       <img
-                        src={getMediaUrl(media.url)} // ✅ CORRECTION: Utilisation de la fonction getMediaUrl
+                        src={getMediaUrl(media.url)}
                         alt={`Media ${index + 1}`}
                         className="media-preview"
                         onError={(e) => {
@@ -503,7 +492,7 @@ const ResidenceForm = () => {
                       />
                     ) : (
                       <video
-                        src={getMediaUrl(media.url)} // ✅ CORRECTION: Utilisation de la fonction getMediaUrl
+                        src={getMediaUrl(media.url)}
                         className="media-preview"
                         controls
                         onError={(e) => {
@@ -554,18 +543,12 @@ const ResidenceForm = () => {
                         src={URL.createObjectURL(file)}
                         alt={`Nouveau média ${index + 1}`}
                         className="media-preview"
-                        onError={(e) => {
-                          console.warn('Failed to create object URL for:', file.name);
-                        }}
                       />
                     ) : (
                       <video
                         src={URL.createObjectURL(file)}
                         className="media-preview"
                         controls
-                        onError={(e) => {
-                          console.warn('Failed to create object URL for video:', file.name);
-                        }}
                       />
                     )}
                     <button
@@ -592,6 +575,7 @@ const ResidenceForm = () => {
           </div>
         )}
 
+        {/* Actions */}
         <div className="form-actions">
           <button
             type="button"
