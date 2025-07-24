@@ -243,7 +243,7 @@ export default function OwnerDashboard() {
 
                   <div className="reservation-details">
                     <div className="residence-info">
-                      <h4>{reservation.residence?.title || 'Résidence supprimée'}</h4>
+                      <h4>{reservation.residence?.title || 'Résidence reservée'}</h4>
                       <p>📍 {reservation.residence?.location}</p>
                     </div>
 
